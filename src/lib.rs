@@ -111,7 +111,7 @@ impl MqOpenApp {
         let mut app = Self {
             file_path: None,
             source_content: String::new(),
-            query: "self".to_string(),
+            query: ".".to_string(),
             results: Vec::new(),
             toc: Vec::new(),
             error: None,
@@ -610,12 +610,28 @@ impl eframe::App for MqOpenApp {
                                 ui.set_max_width(content_width - 48.0);
                                 ui.set_min_width(content_width - 48.0);
 
-                                for (i, node) in self.results.iter().enumerate() {
+                                let mut i = 0;
+                                while i < self.results.len() {
                                     if self.scroll_to_node == Some(i) {
                                         ui.scroll_to_cursor(Some(egui::Align::TOP));
                                         self.scroll_to_node = None;
                                     }
-                                    render_node(ui, node, 0, &c);
+                                    let node = &self.results[i];
+                                    if matches!(node, Node::TableCell(_) | Node::TableAlign(_)) {
+                                        let start = i;
+                                        while i < self.results.len()
+                                            && matches!(
+                                                &self.results[i],
+                                                Node::TableCell(_) | Node::TableAlign(_)
+                                            )
+                                        {
+                                            i += 1;
+                                        }
+                                        render_table(ui, &self.results[start..i], &c);
+                                    } else {
+                                        render_node(ui, node, 0, &c);
+                                        i += 1;
+                                    }
                                 }
 
                                 if self.results.is_empty() && self.error.is_none() {
@@ -732,6 +748,7 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
                 .inner_margin(egui::Margin::symmetric(5, 2))
                 .stroke(egui::Stroke::new(1.0, c.border))
                 .show(ui, |ui| {
+                    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
                     ui.label(
                         egui::RichText::new(code.value.as_str())
                             .font(egui::FontId::monospace(12.0))
@@ -912,6 +929,7 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
                 .inner_margin(egui::Margin::symmetric(5, 2))
                 .stroke(egui::Stroke::new(1.0, border))
                 .show(ui, |ui| {
+                    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
                     ui.label(
                         egui::RichText::new(m.value.as_str())
                             .font(egui::FontId::monospace(12.0))
@@ -920,13 +938,12 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
                 });
         }
         Node::List(l) => {
-            ui.add_space(2.0);
             let marker = if l.ordered {
                 format!("{}.", l.index + 1)
             } else {
                 "•".to_string()
             };
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 ui.add_space(depth as f32 * 16.0 + 4.0);
                 ui.label(
                     egui::RichText::new(&marker)
@@ -934,13 +951,10 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
                         .size(14.0)
                         .strong(),
                 );
-                ui.horizontal(|ui| {
-                    for child in &l.values {
-                        render_node(ui, child, depth + 1, c);
-                    }
-                });
+                for child in &l.values {
+                    render_node(ui, child, depth + 1, c);
+                }
             });
-            ui.add_space(2.0);
         }
         Node::Blockquote(b) => {
             ui.add_space(6.0);
@@ -1064,9 +1078,12 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
             ui.add_space(10.0);
         }
         Node::Fragment(f) => {
-            for child in &f.values {
-                render_node(ui, child, depth, c);
-            }
+            ui.horizontal_wrapped(|ui| {
+                ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+                for child in &f.values {
+                    render_node(ui, child, depth, c);
+                }
+            });
         }
         Node::Break(_) => {
             ui.add_space(4.0);
@@ -1138,4 +1155,65 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
             }
         }
     }
+}
+
+fn render_table(ui: &mut egui::Ui, nodes: &[Node], c: &Colors) {
+    use std::collections::BTreeMap;
+
+    // Group cells by row, sorted by column
+    let mut rows: BTreeMap<usize, BTreeMap<usize, &Node>> = BTreeMap::new();
+    for node in nodes {
+        if let Node::TableCell(cell) = node {
+            rows.entry(cell.row).or_default().insert(cell.column, node);
+        }
+    }
+
+    if rows.is_empty() {
+        return;
+    }
+
+    ui.add_space(6.0);
+    egui::Frame::new()
+        .stroke(egui::Stroke::new(1.0, c.border))
+        .inner_margin(0.0)
+        .show(ui, |ui| {
+            ui.set_min_width(ui.available_width());
+            for (row_idx, (_row_num, cols)) in rows.iter().enumerate() {
+                let is_header = row_idx == 0;
+                ui.horizontal(|ui| {
+                    for cell_node in cols.values() {
+                        let bg = if is_header { c.surface2 } else { c.surface };
+                        egui::Frame::new()
+                            .fill(bg)
+                            .inner_margin(egui::Margin::symmetric(10, 6))
+                            .stroke(egui::Stroke::new(1.0, c.border))
+                            .show(ui, |ui| {
+                                ui.set_min_width(80.0);
+                                if let Node::TableCell(cell) = cell_node {
+                                    let text = cell
+                                        .values
+                                        .iter()
+                                        .map(|n| n.value())
+                                        .collect::<Vec<_>>()
+                                        .join("");
+                                    let rich = egui::RichText::new(text).color(c.text).size(13.0);
+                                    let rich = if is_header { rich.strong() } else { rich };
+                                    ui.label(rich);
+                                }
+                            });
+                    }
+                });
+                if is_header {
+                    let rect = ui.available_rect_before_wrap();
+                    ui.painter().line_segment(
+                        [
+                            egui::pos2(rect.left(), rect.top()),
+                            egui::pos2(rect.right(), rect.top()),
+                        ],
+                        egui::Stroke::new(2.0, c.accent),
+                    );
+                }
+            }
+        });
+    ui.add_space(6.0);
 }

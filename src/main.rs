@@ -16,6 +16,7 @@ fn main() -> eframe::Result {
         viewport: eframe::egui::ViewportBuilder::default()
             .with_inner_size([1440.0, 900.0])
             .with_title("mq"),
+        persist_window: true,
         ..Default::default()
     };
 
