@@ -6,8 +6,6 @@ use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::time::Instant;
 
-// ── Theme-aware color palette ─────────────────────────────────────────────────
-
 struct Colors {
     bg: egui::Color32,
     surface: egui::Color32,
@@ -460,7 +458,7 @@ impl eframe::App for MqOpenApp {
                 ui.horizontal(|ui| {
                     ui.label(
                         egui::RichText::new("mq")
-                            .size(24.0)
+                            .size(18.0)
                             .color(c.accent)
                             .strong(),
                     );
@@ -628,6 +626,20 @@ impl eframe::App for MqOpenApp {
                                             i += 1;
                                         }
                                         render_table(ui, &self.results[start..i], &c);
+                                    } else if is_inline_node(node) {
+                                        let start = i;
+                                        while i < self.results.len()
+                                            && is_inline_node(&self.results[i])
+                                        {
+                                            i += 1;
+                                        }
+                                        ui.horizontal_wrapped(|ui| {
+                                            ui.style_mut().wrap_mode =
+                                                Some(egui::TextWrapMode::Extend);
+                                            for node in &self.results[start..i] {
+                                                render_node(ui, node, 0, &c);
+                                            }
+                                        });
                                     } else {
                                         render_node(ui, node, 0, &c);
                                         i += 1;
@@ -671,6 +683,20 @@ fn status_chip(ui: &mut egui::Ui, label: &str, value: &str, c: &Colors) {
                 );
             });
         });
+}
+
+fn is_inline_node(node: &Node) -> bool {
+    matches!(
+        node,
+        Node::Text(_)
+            | Node::CodeInline(_)
+            | Node::MathInline(_)
+            | Node::Emphasis(_)
+            | Node::Strong(_)
+            | Node::Link(_)
+            | Node::Delete(_)
+            | Node::Fragment(_)
+    )
 }
 
 fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
@@ -742,19 +768,26 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
             ui.add_space(6.0);
         }
         Node::CodeInline(code) => {
-            egui::Frame::new()
-                .fill(c.code_bg)
-                .corner_radius(3.0)
-                .inner_margin(egui::Margin::symmetric(5, 2))
-                .stroke(egui::Stroke::new(1.0, c.border))
-                .show(ui, |ui| {
-                    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
-                    ui.label(
-                        egui::RichText::new(code.value.as_str())
-                            .font(egui::FontId::monospace(12.0))
-                            .color(c.code_text),
-                    );
-                });
+            let galley = ui.ctx().fonts_mut(|f| {
+                f.layout_no_wrap(
+                    code.value.as_str().to_string(),
+                    egui::FontId::monospace(12.0),
+                    c.code_text,
+                )
+            });
+            let padding = egui::vec2(5.0, 2.0);
+            let total_size = galley.size() + padding * 2.0;
+            let (rect, _) = ui.allocate_exact_size(total_size, egui::Sense::hover());
+            if ui.is_rect_visible(rect) {
+                ui.painter().rect(
+                    rect,
+                    3.0,
+                    c.code_bg,
+                    egui::Stroke::new(1.0, c.border),
+                    egui::StrokeKind::Inside,
+                );
+                ui.painter().galley(rect.min + padding, galley, c.code_text);
+            }
         }
         Node::Html(h) => {
             ui.add_space(6.0);
@@ -923,19 +956,26 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
                     egui::Color32::from_rgb(7, 89, 133),
                 )
             };
-            egui::Frame::new()
-                .fill(bg)
-                .corner_radius(3.0)
-                .inner_margin(egui::Margin::symmetric(5, 2))
-                .stroke(egui::Stroke::new(1.0, border))
-                .show(ui, |ui| {
-                    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
-                    ui.label(
-                        egui::RichText::new(m.value.as_str())
-                            .font(egui::FontId::monospace(12.0))
-                            .color(text_color),
-                    );
-                });
+            let galley = ui.ctx().fonts_mut(|f| {
+                f.layout_no_wrap(
+                    m.value.as_str().to_string(),
+                    egui::FontId::monospace(12.0),
+                    text_color,
+                )
+            });
+            let padding = egui::vec2(5.0, 2.0);
+            let total_size = galley.size() + padding * 2.0;
+            let (rect, _) = ui.allocate_exact_size(total_size, egui::Sense::hover());
+            if ui.is_rect_visible(rect) {
+                ui.painter().rect(
+                    rect,
+                    3.0,
+                    bg,
+                    egui::Stroke::new(1.0, border),
+                    egui::StrokeKind::Inside,
+                );
+                ui.painter().galley(rect.min + padding, galley, text_color);
+            }
         }
         Node::List(l) => {
             let marker = if l.ordered {
@@ -1032,7 +1072,16 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
         }
         Node::Link(l) => {
             ui.hyperlink_to(
-                egui::RichText::new(node.value()).color(c.accent).size(14.0),
+                egui::RichText::new(
+                    l.title.as_ref().map(|t| t.to_value()).unwrap_or(
+                        l.values
+                            .iter()
+                            .map(|value| value.value())
+                            .collect::<String>(),
+                    ),
+                )
+                .color(c.accent)
+                .size(14.0),
                 l.url.as_str(),
             );
         }
