@@ -12,7 +12,7 @@ mq-markdown = "0.5.19"
 eframe = { version = "0.33.0", features = ["persistence"] }
 egui_extras = { version = "0.33.3", features = ["all_loaders"] }
 image = { version = "0.25", features = ["png", "jpeg"] }
-rfd = "0.15"
+rfd = "0.17"
 miette = "7.6.0"
 clap = {version = "4.6.0", features = ["derive"] }
 notify = "8.0.0"
