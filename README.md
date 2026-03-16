@@ -16,12 +16,38 @@ It can be used as a standalone application or as a subcommand of `mq` (e.g., `mq
   - **Keyboard Shortcuts**: Efficient workflow with shortcuts like `Cmd/Ctrl + O` to open and `Cmd/Ctrl + T` to toggle themes.
 - **Theming**: Supports both **Light** and **Dark** modes with styling inspired by [mqlang.org](https://mqlang.org).
 - **Document Statistics**: Live status bar showing node counts, word counts, and query performance metrics.
+- **Window State Persistence**: Window size and position are automatically saved and restored on next launch.
 
 ## Installation
+
+### One-line Install (Linux / macOS)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/harehare/mq-open/main/bin/install.sh | bash
+```
+
+The installer will:
+1. Detect your OS and architecture automatically
+2. Download the latest release binary from GitHub
+3. Verify the SHA256 checksum
+4. Install to `~/.mq/bin/mq-open`
+5. Add `~/.mq/bin` to your `PATH` in your shell profile
+
+After installation, restart your terminal or source your shell profile, then run:
+
+```bash
+mq-open --version
+```
 
 ### From Source
 
 Ensure you have the Rust toolchain installed.
+
+```bash
+cargo build --release -p mq-open
+```
+
+Or run directly:
 
 ```bash
 cargo run -p mq-open -- [file.md]
