@@ -4,6 +4,8 @@
 
 It can be used as a standalone application or as a subcommand of `mq` (e.g., `mq-open` executable in path).
 
+![image](./assets/image.jpg)
+
 ## Features
 
 - **Rich Markdown Preview**: High-fidelity rendering of Markdown elements including Headings, Tables, Lists, Blockquotes, Links, and Images.
