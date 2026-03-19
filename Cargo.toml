@@ -8,7 +8,7 @@ readme = "README.md"
 
 [dependencies]
 mq-lang = "0.5.19"
-mq-markdown = "0.5.19"
+mq-markdown = "0.5.20"
 eframe = { version = "0.33.0", features = ["persistence"] }
 egui_extras = { version = "0.33.3", features = ["all_loaders"] }
 image = { version = "0.25", features = ["png", "jpeg"] }
