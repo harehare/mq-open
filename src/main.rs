@@ -15,7 +15,12 @@ fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
             .with_inner_size([1440.0, 900.0])
-            .with_title("mq"),
+            .with_title(format!(
+                "mq{}",
+                args.file
+                    .as_ref()
+                    .map_or(String::new(), |f| format!(" - {}", f.display()))
+            )),
         persist_window: true,
         ..Default::default()
     };
@@ -23,6 +28,9 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "mq-open",
         options,
-        Box::new(|cc| Ok(Box::new(MqOpenApp::new(cc, args.file)))),
+        Box::new(|cc| {
+            egui_extras::install_image_loaders(&cc.egui_ctx);
+            Ok(Box::new(MqOpenApp::new(cc, args.file)))
+        }),
     )
 }

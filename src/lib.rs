@@ -2,9 +2,10 @@ use eframe::egui;
 use mq_lang::{DefaultEngine, RuntimeValue};
 use mq_markdown::{Markdown, Node};
 use notify::{RecursiveMode, Watcher};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::time::Instant;
+use url::Url;
 
 struct Colors {
     bg: egui::Color32,
@@ -637,11 +638,11 @@ impl eframe::App for MqOpenApp {
                                             ui.style_mut().wrap_mode =
                                                 Some(egui::TextWrapMode::Extend);
                                             for node in &self.results[start..i] {
-                                                render_node(ui, node, 0, &c);
+                                                render_node(ui, node, 0, &c, self.file_path.as_ref());
                                             }
                                         });
                                     } else {
-                                        render_node(ui, node, 0, &c);
+                                        render_node(ui, node, 0, &c, self.file_path.as_ref());
                                         i += 1;
                                     }
                                 }
@@ -699,7 +700,13 @@ fn is_inline_node(node: &Node) -> bool {
     )
 }
 
-fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
+fn render_node(
+    ui: &mut egui::Ui,
+    node: &Node,
+    depth: usize,
+    c: &Colors,
+    file_path: Option<&PathBuf>,
+) {
     match node {
         Node::Heading(h) => {
             let size = match h.depth {
@@ -992,7 +999,7 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
                         .strong(),
                 );
                 for child in &l.values {
-                    render_node(ui, child, depth + 1, c);
+                    render_node(ui, child, depth + 1, c, file_path);
                 }
             });
         }
@@ -1027,7 +1034,7 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
                         c.accent,
                     );
                     for child in &b.values {
-                        render_node(ui, child, depth + 1, c);
+                        render_node(ui, child, depth + 1, c, file_path);
                     }
                 });
             ui.add_space(6.0);
@@ -1094,11 +1101,31 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
                 .stroke(egui::Stroke::new(1.0, c.border))
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
-                    ui.add(
-                        egui::Image::new(&i.url)
-                            .max_width(ui.available_width())
-                            .corner_radius(4.0),
-                    );
+
+                    if Path::new(&i.url).is_relative() {
+                        let file_path = file_path
+                            .as_ref()
+                            .and_then(|file| {
+                                file.parent()
+                                    .map(|p| p.join(&i.url).to_string_lossy().to_string())
+                            })
+                            .unwrap_or(i.url.clone());
+
+                        if let Ok(url) = Url::from_file_path(&file_path) {
+                            ui.add(
+                                egui::Image::new(url.to_string())
+                                    .max_width(ui.available_width())
+                                    .corner_radius(4.0),
+                            );
+                        }
+                    } else {
+                        ui.add(
+                            egui::Image::new(&i.url)
+                                .max_width(ui.available_width())
+                                .corner_radius(4.0),
+                        );
+                    }
+
                     if !i.alt.is_empty() {
                         ui.add_space(4.0);
                         ui.add(
@@ -1130,7 +1157,7 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
             ui.horizontal_wrapped(|ui| {
                 ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
                 for child in &f.values {
-                    render_node(ui, child, depth, c);
+                    render_node(ui, child, depth, c, file_path);
                 }
             });
         }
@@ -1139,7 +1166,7 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
         }
         Node::TableCell(cell) => {
             for child in &cell.values {
-                render_node(ui, child, depth, c);
+                render_node(ui, child, depth, c, file_path);
             }
         }
         Node::TableRow(r) => {
@@ -1151,7 +1178,7 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
                         .stroke(egui::Stroke::new(1.0, c.border))
                         .show(ui, |ui| {
                             ui.set_min_width(80.0);
-                            render_node(ui, cell, depth, c);
+                            render_node(ui, cell, depth, c, file_path);
                         });
                 }
             });
@@ -1183,7 +1210,7 @@ fn render_node(ui: &mut egui::Ui, node: &Node, depth: usize, c: &Colors) {
                                 .strong(),
                         );
                         for child in &f.values {
-                            render_node(ui, child, depth + 1, c);
+                            render_node(ui, child, depth + 1, c, file_path);
                         }
                     });
                 });
