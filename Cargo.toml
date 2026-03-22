@@ -1,6 +1,6 @@
 [package]
 name = "mq-open"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Takahiro Sato <harehare1110@gmail.com>"]
 categories = ["command-line-utilities", "text-processing"]
@@ -11,8 +11,8 @@ keywords = ["markdown", "jq", "query"]
 license = "MIT"
 
 [dependencies]
-mq-lang = "0.5.20"
-mq-markdown = "0.5.20"
+mq-lang = "0.5.22"
+mq-markdown = "0.5.22"
 eframe = { version = "0.33.0", features = ["persistence"] }
 egui_extras = { version = "0.33.3", features = ["all_loaders"] }
 image = { version = "0.25" }
