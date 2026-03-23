@@ -101,6 +101,7 @@ pub struct TocEntry {
 impl MqOpenApp {
     pub fn new(cc: &eframe::CreationContext<'_>, file_path: Option<PathBuf>) -> Self {
         egui_extras::install_image_loaders(&cc.egui_ctx);
+        setup_fonts(&cc.egui_ctx);
         apply_custom_style(&cc.egui_ctx, true);
 
         let mut engine = DefaultEngine::default();
@@ -247,6 +248,52 @@ impl MqOpenApp {
             self.toc = Vec::new();
         }
     }
+}
+
+fn setup_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+
+    #[cfg(target_os = "macos")]
+    let cjk_font_paths = [
+        "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
+        "/System/Library/Fonts/Hiragino Sans GB.ttc",
+        "/Library/Fonts/Arial Unicode MS.ttf",
+    ];
+
+    #[cfg(target_os = "windows")]
+    let cjk_font_paths = [
+        "C:/Windows/Fonts/meiryo.ttc",
+        "C:/Windows/Fonts/msgothic.ttc",
+        "C:/Windows/Fonts/YuGoth.ttc",
+    ];
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    let cjk_font_paths = [
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/noto-cjk/NotoSansCJKjp-Regular.otf",
+        "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    ];
+
+    for path in &cjk_font_paths {
+        if let Ok(data) = std::fs::read(path) {
+            fonts
+                .font_data
+                .insert("cjk_fallback".to_owned(), egui::FontData::from_owned(data).into());
+            fonts
+                .families
+                .entry(egui::FontFamily::Proportional)
+                .or_default()
+                .push("cjk_fallback".to_owned());
+            fonts
+                .families
+                .entry(egui::FontFamily::Monospace)
+                .or_default()
+                .push("cjk_fallback".to_owned());
+            break;
+        }
+    }
+
+    ctx.set_fonts(fonts);
 }
 
 fn apply_custom_style(ctx: &egui::Context, dark_mode: bool) {
