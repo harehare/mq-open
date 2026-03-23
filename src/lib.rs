@@ -276,9 +276,10 @@ fn setup_fonts(ctx: &egui::Context) {
 
     for path in &cjk_font_paths {
         if let Ok(data) = std::fs::read(path) {
-            fonts
-                .font_data
-                .insert("cjk_fallback".to_owned(), egui::FontData::from_owned(data).into());
+            fonts.font_data.insert(
+                "cjk_fallback".to_owned(),
+                egui::FontData::from_owned(data).into(),
+            );
             fonts
                 .families
                 .entry(egui::FontFamily::Proportional)
@@ -395,6 +396,7 @@ impl eframe::App for MqOpenApp {
             .resizable(true)
             .default_width(220.0)
             .min_width(160.0)
+            .max_width(300.0)
             .frame(egui::Frame::new().fill(c.surface).inner_margin(0.0))
             .show(ctx, |ui| {
                 egui::Frame::new()
