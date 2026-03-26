@@ -14,7 +14,7 @@ license = "MIT"
 mq-lang = "0.5.23"
 mq-markdown = "0.5.22"
 eframe = { version = "0.33.0", features = ["persistence"] }
-egui_extras = { version = "0.33.3", features = ["all_loaders"] }
+egui_extras = { version = "0.34.0", features = ["all_loaders"] }
 image = { version = "0.25" }
 rfd = "0.17"
 miette = "7.6.0"
