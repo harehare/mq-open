@@ -11,7 +11,7 @@ keywords = ["markdown", "jq", "query"]
 license = "MIT"
 
 [dependencies]
-mq-lang = "0.5.23"
+mq-lang = "0.5.24"
 mq-markdown = "0.5.22"
 eframe = { version = "0.33.0", features = ["persistence"] }
 egui_extras = { version = "0.33.3", features = ["all_loaders"] }
