@@ -32,8 +32,8 @@ The installer will:
 1. Detect your OS and architecture automatically
 2. Download the latest release binary from GitHub
 3. Verify the SHA256 checksum
-4. Install to `~/.mq/bin/mq-open`
-5. Add `~/.mq/bin` to your `PATH` in your shell profile
+4. Install to `~/.local/bin/mq-open`
+5. Add `~/.local/bin` to your `PATH` in your shell profile
 
 After installation, restart your terminal or source your shell profile, then run:
 

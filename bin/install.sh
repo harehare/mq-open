@@ -5,8 +5,7 @@ set -e
 # mq-open installation script
 
 readonly MQO_REPO="harehare/mq-open"
-readonly MQO_INSTALL_DIR="$HOME/.mq"
-readonly MQO_BIN_DIR="$MQO_INSTALL_DIR/bin"
+readonly MQO_BIN_DIR="$HOME/.local/bin"
 
 # Colors for output
 readonly RED='\033[0;31m'
