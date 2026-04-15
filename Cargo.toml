@@ -11,7 +11,7 @@ repository = "https://github.com/harehare/mq-open"
 version = "0.1.3"
 
 [dependencies]
-clap = {version = "4.6.0", features = ["derive"]}
+clap = {version = "4.6.1", features = ["derive"]}
 eframe = {version = "0.33.0", features = ["persistence"]}
 egui_extras = {version = "0.33.3", features = ["all_loaders"]}
 image = {version = "0.25"}
