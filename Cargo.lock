@@ -2703,9 +2703,9 @@ dependencies = [
 
 [[package]]
 name = "mq-lang"
-version = "0.5.27"
+version = "0.5.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcec9a81ff2a19311282a74424991ea47bf32fd4eecb0b0c013762f5791ff466"
+checksum = "9f2bf834fe423be2ddf6b5c3d070849bdfd7c8e699091442285d36f1317cf152"
 dependencies = [
  "base64",
  "chrono",
@@ -2714,6 +2714,7 @@ dependencies = [
  "itertools",
  "md5",
  "miette",
+ "mq-macros",
  "mq-markdown",
  "nom",
  "nom_locate",
@@ -2736,10 +2737,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "mq-markdown"
-version = "0.5.27"
+name = "mq-macros"
+version = "0.5.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a24e772fd4dbe02ad6d9d408ab81daadcdbcd7bc0d2456acc3d2e679f9d0b95"
+checksum = "5ce58c38d1e438e38a93b719ac9fef9b1265fbca801531eb4d185ba76b1ba590"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "mq-markdown"
+version = "0.5.29"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "597ed0df54af8059a775089c5c16d7ac22fa5621647c250cbe87a08f27d6539d"
 dependencies = [
  "ego-tree",
  "itertools",
@@ -4430,11 +4442,11 @@ dependencies = [
 
 [[package]]
 name = "string-interner"
-version = "0.19.0"
+version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23de088478b31c349c9ba67816fa55d9355232d63c3afea8bf513e31f0f1d2c0"
+checksum = "ad3df9b59e2eded8d825c7c4363ad339a20fb6bc0b9a4778560f518f59910b15"
 dependencies = [
- "hashbrown 0.15.5",
+ "hashbrown 0.16.1",
  "serde",
 ]
 
