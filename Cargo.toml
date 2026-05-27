@@ -17,7 +17,7 @@ egui_extras = {version = "0.33.3", features = ["all_loaders"]}
 image = {version = "0.25"}
 itertools = "0.14.0"
 miette = "7.6.0"
-mq-lang = "0.5.27"
+mq-lang = "0.5.31"
 mq-markdown = "0.5.27"
 notify = "8.0.0"
 rfd = "0.17"
